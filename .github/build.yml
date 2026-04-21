@@ -1,0 +1,67 @@
+name: Build e publicar plugin
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v3
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Permissão no gradlew
+        run: chmod +x gradlew
+
+      - name: Compilar plugin
+        run: ./gradlew EmbedTvProvider:make
+
+      - name: Gerar plugins.json
+        run: |
+          REPO="${{ github.repository }}"
+          USER="${{ github.repository_owner }}"
+          cat > plugins.json << JSONEOF
+          [
+            {
+              "name": "EmbedTV",
+              "internalName": "EmbedTvProvider",
+              "url": "https://github.com/${REPO}/releases/latest/download/EmbedTvProvider.cs3",
+              "authors": ["${USER}"],
+              "status": 1,
+              "tvTypes": ["Live"],
+              "description": "Canais de TV ao vivo — EmbedTV",
+              "language": "pt",
+              "iconUrl": "https://w1.embedtv.live/favicon.ico",
+              "version": 1
+            }
+          ]
+          JSONEOF
+
+      - name: Publicar Release com .cs3 e plugins.json
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "EmbedTvProvider/build/EmbedTvProvider.cs3,plugins.json"
+          tag: "v${{ github.run_number }}"
+          name: "Build ${{ github.run_number }}"
+          body: "Plugin EmbedTV compilado automaticamente."
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+
+      - name: Publicar plugins.json no GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          include_files: plugins.json
