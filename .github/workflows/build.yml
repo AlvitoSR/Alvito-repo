@@ -15,9 +15,9 @@ jobs:
         with:
           path: meu-plugin
 
-      - name: Clonar template oficial do CloudStream
+      - name: Clonar template do Codeberg
         run: |
-          git clone https://github.com/recloudstream/cloudstream-extensions-template.git template
+          git clone --depth 1 https://codeberg.org/cloudstream/cloudstream-extensions.git template
 
       - name: Copiar plugin para dentro do template
         run: |
