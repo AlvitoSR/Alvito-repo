@@ -22,13 +22,13 @@ jobs:
       - name: Configurar Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Baixar gradlew correto do template oficial
-        run: |
-          curl -L "https://raw.githubusercontent.com/recloudstream/cloudstream-extensions-template/master/gradlew" -o gradlew
-          chmod +x gradlew
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.2"
 
       - name: Compilar plugin
-        run: ./gradlew EmbedTvProvider:make
+        run: gradle EmbedTvProvider:make
 
       - name: Gerar plugins.json
         run: |
@@ -51,7 +51,7 @@ jobs:
           ]
           JSONEOF
 
-      - name: Publicar Release com .cs3 e plugins.json
+      - name: Publicar Release
         uses: ncipollo/release-action@v1
         with:
           artifacts: "EmbedTvProvider/build/EmbedTvProvider.cs3,plugins.json"
